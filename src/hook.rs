@@ -3,7 +3,7 @@
 // Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 //
 // Hook trait for implementing lifecycle event interceptors.
-// Corresponds to ecosystem/hooks/__init__.py in the Python ecosystem.
+// Corresponds to agentrt/hooks/__init__.py in the Python SDK.
 
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
