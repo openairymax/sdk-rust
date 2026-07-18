@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2025-2026 SPHARX Ltd.
+// SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
+
 use agentrt_rs::client::ClientBuilder;
 use agentrt_rs::modules::task::TaskManager;
 use agentrt_rs::modules::memory::MemoryManager;
