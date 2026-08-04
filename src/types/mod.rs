@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 类型定义模块
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-24
 //
 // 定义 SDK 中使用的所有枚举类型、领域模型和请求/响应结构。

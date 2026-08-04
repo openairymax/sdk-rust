@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 主入口
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-24
 //
 // SDK 顶层统一入口，提供版本信息并导出所有公共 API。
@@ -41,13 +41,13 @@ pub mod hook;
 // ============================================================
 
 /// SDK 版本号
-pub const VERSION: &str = "0.1.0";
+pub const VERSION: &str = "0.1.1";
 
 /// SDK 作者
 pub const AUTHOR: &str = "SPHARX Ltd.";
 
 /// SDK 许可证
-pub const LICENSE: &str = "MIT";
+pub const LICENSE: &str = "AGPL-3.0-or-later OR Apache-2.0";
 
 // ============================================================
 // 公共 API 导出
@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert_eq!(VERSION, "0.1.0");
+        assert_eq!(VERSION, "0.1.1");
     }
 
     #[test]

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 记忆管理器实现
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-24
 //
 // 提供记忆的写入、搜索、更新、删除及统计功能。

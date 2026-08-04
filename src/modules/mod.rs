@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 业务模块层
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-24
 //
 // 提供任务、记忆、会话、技能等业务模块的管理功能。

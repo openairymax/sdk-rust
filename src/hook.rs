@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - Hook Trait
-// Version: 0.1.0
+// Version: 0.1.1
 // Copyright (c) 2026 SPHARX Ltd. All Rights Reserved.
 //
 // Hook trait for implementing lifecycle event interceptors.
@@ -114,7 +114,7 @@ pub trait Hook: Send + Sync {
 
     /// Hook version.
     fn version(&self) -> &str {
-        "0.1.0"
+        "0.1.1"
     }
 
     /// Priority (0=lowest, 100=highest). Higher priority hooks run first.
@@ -295,6 +295,6 @@ mod tests {
         let hook = TestHook { called: false };
         let info = hook.get_hook_info();
         assert_eq!(info["name"], "test_hook");
-        assert_eq!(info["version"], "0.1.0");
+        assert_eq!(info["version"], "0.1.1");
     }
 }
