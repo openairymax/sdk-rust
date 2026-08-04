@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK Agent
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-23
 
 use crate::Client;

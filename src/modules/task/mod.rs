@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 任务管理模块
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-03-24
 //
 // 提供任务的提交、查询、等待、取消、列表等生命周期管理功能。

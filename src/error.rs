@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 统一错误体系
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-04-05
 //
 // 定义 SDK 的完整错误类型层级、错误码枚举、哨兵错误和 HTTP 状态码映射。

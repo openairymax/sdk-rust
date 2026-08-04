@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later OR Apache-2.0
 
 // AgentRT Rust SDK - 插件框架
-// Version: 0.1.0
+// Version: 0.1.1
 // Last updated: 2026-04-26
 //
 // 插件化框架，提供运行时的动态功能扩展能力。
@@ -515,7 +515,7 @@ impl SkillDefinition {
         Self {
             name: name.to_string(),
             description: description.to_string(),
-            version: "0.1.0".to_string(),
+            version: "0.1.1".to_string(),
             category: "general".to_string(),
             tags: Vec::new(),
             input_schema: HashMap::new(),

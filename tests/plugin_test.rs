@@ -285,7 +285,7 @@ mod hook_tests {
     fn test_hook_default_info() {
         let hook = AuditorHook;
         assert_eq!(hook.name(), "auditor");
-        assert_eq!(hook.version(), "0.1.0");
+        assert_eq!(hook.version(), "0.1.1");
         assert_eq!(hook.priority(), 100);
         assert!(hook.enabled());
     }
@@ -295,7 +295,7 @@ mod hook_tests {
         let hook = AuditorHook;
         let info = hook.get_hook_info();
         assert_eq!(info["name"], "auditor");
-        assert_eq!(info["version"], "0.1.0");
+        assert_eq!(info["version"], "0.1.1");
     }
 
     #[test]
