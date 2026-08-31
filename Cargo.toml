@@ -1,6 +1,6 @@
 [package]
 name = "agentrt-rs"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 description = "AgentRT Rust SDK"
 license = "AGPL-3.0-or-later OR Apache-2.0"
