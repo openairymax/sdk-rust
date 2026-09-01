@@ -38,4 +38,24 @@ impl Agent {
     pub fn endpoint(&self) -> &str {
         self.client.endpoint()
     }
+
+    /// 流式运行 agent（agent.run_stream SSE 订阅，M1-1d §2.4）
+    ///
+    /// # 参数
+    /// - `params`: 运行参数（prompt 等，原样透传给引擎）
+    /// - `on_event`: 每收到一个事件帧的回调（宽容读取，未知类型不崩）
+    ///
+    /// # 返回
+    /// 流结束或出错时返回；错误信封（type=error）以事件帧形式回调，
+    /// 由调用方决策是否中断。
+    pub async fn run_stream<F>(
+        &self,
+        params: serde_json::Value,
+        on_event: F,
+    ) -> Result<(), crate::error::AgentOSError>
+    where
+        F: FnMut(crate::run_stream::RunStreamEnvelope),
+    {
+        crate::run_stream::run_stream_events(&self.client, params, on_event).await
+    }
 }

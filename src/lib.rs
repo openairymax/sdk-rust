@@ -18,6 +18,7 @@ pub mod types;
 pub mod utils;
 pub mod modules;
 pub mod protocol;
+pub mod run_stream;
 
 // 保留旧模块以保持向后兼容（标记为 deprecated）
 #[deprecated(since = "0.1.0", note = "请使用 modules::task::TaskManager")]
@@ -40,8 +41,8 @@ pub mod hook;
 // 版本信息
 // ============================================================
 
-/// SDK 版本号
-pub const VERSION: &str = "0.1.1";
+/// SDK 版本号（SSoT：Cargo.toml [package].version 单一权威）
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// SDK 作者
 pub const AUTHOR: &str = "SPHARX Ltd.";
@@ -103,6 +104,9 @@ pub use protocol::{
     ProtocolType, ProtocolConfig, ProtocolClient,
     DetectionResult, ConnectionTestResult,
 };
+
+// run_stream 事件解码器（M1-1d §2.4，wire 键名源自 C 侧 SSoT 契约头）
+pub use run_stream::{RunStreamEnvelope, RunStreamKind, decode_sse_frame};
 
 // 工具函数
 pub use utils::{
@@ -193,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_version() {
-        assert_eq!(VERSION, "0.1.1");
+        assert_eq!(VERSION, env!("CARGO_PKG_VERSION"));
     }
 
     #[test]
@@ -203,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_license() {
-        assert_eq!(LICENSE, "MIT");
+        assert_eq!(LICENSE, "AGPL-3.0-or-later OR Apache-2.0");
     }
 
     #[test]
