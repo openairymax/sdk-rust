@@ -285,6 +285,39 @@ impl Client {
         Err(last_error.unwrap_or_else(|| AgentOSError::network("未知网络错误")))
     }
 
+    /// 发起流式 POST，返回原始响应（供 SSE 逐帧读取，不聚合 body）
+    ///
+    /// 与 request_internal 的区别：不解析/聚合响应体，调用方自行消费
+    /// bytes_stream；同样携带 API Key 认证头与超时配置。
+    pub async fn post_stream(
+        &self,
+        path: &str,
+        body: &Value,
+    ) -> Result<reqwest::Response, AgentOSError> {
+        let url = format!("{}{}", self.endpoint, path);
+        let mut builder = self
+            .http_client
+            .post(&url)
+            .json(body)
+            .timeout(self.timeout);
+        if let Some(ref api_key) = self.api_key {
+            builder = builder.bearer_auth(api_key);
+        }
+        let resp = builder
+            .send()
+            .await
+            .map_err(|e| AgentOSError::network(&e.to_string()))?;
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let err_body = resp.text().await.unwrap_or_default();
+            return Err(AgentOSError::with_code(
+                http_status_to_code(status.as_u16()),
+                &err_body,
+            ));
+        }
+        Ok(resp)
+    }
+
     /// 生成唯一的请求 ID
     fn generate_request_id() -> String {
         use std::time::{SystemTime, UNIX_EPOCH};
