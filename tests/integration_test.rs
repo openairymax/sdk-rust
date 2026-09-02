@@ -261,9 +261,9 @@ fn test_http_status_mapping() {
 
 #[test]
 fn test_version_info() {
-    assert_eq!(VERSION, "0.1.1");
+    assert_eq!(VERSION, env!("CARGO_PKG_VERSION"));
     assert_eq!(AUTHOR, "SPHARX Ltd.");
-    assert_eq!(LICENSE, "MIT");
+    assert_eq!(LICENSE, "AGPL-3.0-or-later OR Apache-2.0");
 }
 
 // ============================================================
