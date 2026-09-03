@@ -2,19 +2,18 @@
 
 # Airymax Rust SDK
 
-[![Version](https://img.shields.io/badge/version-0.1.1-5a6b7e)](https://atomgit.com/openairymax/sdk-rust)
+[![Version](https://img.shields.io/badge/version-0.1.9-5a6b7e)](https://atomgit.com/openairymax/sdk-rust)
 [![License](https://img.shields.io/badge/license-AGPL--3.0+Apache--2.0-4a90d9)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-stable-DEA584?logo=rust&logoColor=white)](https://www.rust-lang.org)
 
 > [Airymax](https://atomgit.com/openairymax/airymaxhub) AI 智能体运行时平台的官方 Rust 开发工具包。
 > [sdk](https://atomgit.com/openairymax/sdk) 管理仓聚合的叶子仓之一。
-> 同时也是 Airymax `cli` 和 `tui` 工具的基础 crate。
 
 ---
 
 ## 概述
 
-**Airymax Rust SDK**（`agentrt-rs`，crate 名 `agentrt_rs`）提供内存安全、零成本抽象的 Airymax 运行时接口。它是面向性能与安全敏感场景的 SDK 首选，且与 Airymax `cli`、`tui` 工具共用同一 crate，因此此处新增的能力会立即在两个命令行界面中可用。
+**Airymax Rust SDK**（`agentrt-rs`，crate 名 `agentrt_rs`）提供内存安全、零成本抽象的 Airymax 运行时接口。它是面向性能与安全敏感场景的 SDK 首选。
 
 基于该 SDK 构建的 Agent 应用是**运行时租户**：通过 SDK 调用系统能力，而非直接访问内核内部。该 crate 以异步（Tokio）为核心、完整 `serde` 类型化，并暴露与运行时响应码一一对应的类型化错误码体系。
 
@@ -74,7 +73,6 @@ sdk-rust/
 ### 下游
 
 - **Agent 应用**：用户编写的 Agent 依赖 `agentrt-rs` 成为运行时租户。
-- **CLI / TUI 工具**：Airymax 的 `cli` 和 `tui` crate 直接消费本 SDK 与运行时通信。
 - **示例**：平台 `ecosystem/examples/` 中的参考 Agent。
 
 ## 安装
@@ -83,7 +81,7 @@ sdk-rust/
 
 ```toml
 [dependencies]
-agentrt-rs = "0.1.1"
+agentrt-rs = "0.1.9"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -161,7 +159,7 @@ cargo doc --open
 
 ## 分支策略
 
-本叶子仓在 **`feature/official-hubs-01`** 分支上开发。聚合管理仓 `sdk` 仅使用 `main` 分支。
+本叶子仓在 **`develop/hubs-01`** 分支上开发，`main` 为发布快照。聚合管理仓 `sdk` 在 `main` 上直接开发。
 
 ## 许可证
 
