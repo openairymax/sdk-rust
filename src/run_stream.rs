@@ -85,6 +85,16 @@ impl RunStreamEnvelope {
             _ => RunStreamKind::Unknown,
         }
     }
+
+    /// 取 data 内字符串字段（宽容缺失）
+    pub fn data_str(&self, key: &str) -> Option<&str> {
+        self.data.get(key).and_then(Value::as_str)
+    }
+
+    /// 取 data 内 i64 字段（宽容缺失）
+    pub fn data_i64(&self, key: &str) -> Option<i64> {
+        self.data.get(key).and_then(Value::as_i64)
+    }
 }
 
 /// 解析单条 SSE 行（"data: <json>"），返回事件信封；非 data 行 / 无效帧

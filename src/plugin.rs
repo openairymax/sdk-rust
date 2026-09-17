@@ -484,6 +484,10 @@ impl PluginManager {
             serde_json::Value::Bool(self.sandbox_enabled),
         );
         stats.insert(
+            "auto_discover".to_string(),
+            serde_json::Value::Bool(self.auto_discover),
+        );
+        stats.insert(
             "state_counts".to_string(),
             serde_json::Value::Object(
                 state_counts.into_iter().map(|(k, v)| (k, serde_json::Value::Number(v.into()))).collect()
