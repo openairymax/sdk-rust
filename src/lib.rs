@@ -106,7 +106,9 @@ pub use protocol::{
 };
 
 // run_stream 事件解码器（M1-1d §2.4，wire 键名源自 C 侧 SSoT 契约头）
-pub use run_stream::{RunStreamEnvelope, RunStreamKind, decode_sse_frame};
+pub use run_stream::{
+    RunStreamEnvelope, RunStreamKind, decode_sse_frame, run_stream_events,
+};
 
 // 工具函数
 pub use utils::{

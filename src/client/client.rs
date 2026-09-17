@@ -36,15 +36,19 @@ pub trait APIClient: Send + Sync {
 pub struct Client {
     endpoint: String,
     http_client: ReqwestClient,
+    stream_client: ReqwestClient,
     api_key: Option<String>,
     user_agent: String,
-    timeout: Duration,
     max_retries: u32,
     retry_delay: Duration,
 }
 
 /// 响应体最大允许大小（10MB）
 const MAX_RESPONSE_BODY_SIZE: usize = 10 * 1024 * 1024;
+
+/// 流式请求的连接建立超时：流本身无总时长上限（长工具循环可持续数分钟），
+/// 仅约束建连阶段，避免不可达端点长时间挂起。
+const STREAM_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 impl Client {
     /// 创建新的 AgentRT 客户端（使用默认配置）
@@ -253,6 +257,14 @@ impl Client {
                     }
 
                     // 解析响应体
+                    if let Some(len) = response.content_length() {
+                        if len as usize > MAX_RESPONSE_BODY_SIZE {
+                            return Err(AgentOSError::parse_error(&format!(
+                                "响应体过大: {} 字节 (上限 {} 字节)",
+                                len, MAX_RESPONSE_BODY_SIZE
+                            )));
+                        }
+                    }
                     let response_text = response.text().await
                         .map_err(|e| AgentOSError::parse_error(&format!("读取响应失败: {}", e)))?;
 
@@ -288,7 +300,10 @@ impl Client {
     /// 发起流式 POST，返回原始响应（供 SSE 逐帧读取，不聚合 body）
     ///
     /// 与 request_internal 的区别：不解析/聚合响应体，调用方自行消费
-    /// bytes_stream；同样携带 API Key 认证头与超时配置。
+    /// bytes_stream；同样携带 API Key 认证头。
+    ///
+    /// 超时语义：使用独立的流式客户端（仅设建连超时，无总请求超时）。
+    /// 工具循环可持续数分钟，若施加总超时会在中途切断事件流。
     pub async fn post_stream(
         &self,
         path: &str,
@@ -296,10 +311,11 @@ impl Client {
     ) -> Result<reqwest::Response, AgentOSError> {
         let url = format!("{}{}", self.endpoint, path);
         let mut builder = self
-            .http_client
+            .stream_client
             .post(&url)
-            .json(body)
-            .timeout(self.timeout);
+            .header("Content-Type", "application/json")
+            .header("User-Agent", &self.user_agent)
+            .json(body);
         if let Some(ref api_key) = self.api_key {
             builder = builder.bearer_auth(api_key);
         }
@@ -468,12 +484,19 @@ impl ClientBuilder {
             .build()
             .map_err(|e| AgentOSError::Config(format!("创建 HTTP 客户端失败: {}", e)))?;
 
+        let stream_client = ReqwestClient::builder()
+            .connect_timeout(STREAM_CONNECT_TIMEOUT)
+            .pool_max_idle_per_host(self.max_connections)
+            .pool_idle_timeout(Some(self.idle_conn_timeout))
+            .build()
+            .map_err(|e| AgentOSError::Config(format!("创建流式 HTTP 客户端失败: {}", e)))?;
+
         Ok(Client {
             endpoint: self.endpoint,
             http_client,
+            stream_client,
             api_key: self.api_key,
             user_agent: self.user_agent,
-            timeout: self.timeout,
             max_retries: self.max_retries,
             retry_delay: self.retry_delay,
         })
