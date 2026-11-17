@@ -17,6 +17,11 @@ use crate::Client;
 use crate::error::AgentOSError;
 use serde_json::Value;
 
+/// 公开流式方法名（gateway 端点按 method 白名单映射到 daemon 方法）
+pub const METHOD_AGENT_RUN_STREAM: &str = "agent.run_stream";
+/// C-15 统一任务编排入口：长任务强制 plan-execute（与 CLI 同源）
+pub const METHOD_TASK_SUBMIT_STREAM: &str = "task.submit_stream";
+
 /// 事件信封（wire JSON 外层，见方案 §2.4.2）
 #[derive(Debug, Clone, PartialEq)]
 pub struct RunStreamEnvelope {
@@ -77,7 +82,12 @@ impl RunStreamEnvelope {
             gen::AIRY_RS_TYPE_RUN_START
             | gen::AIRY_RS_TYPE_RUN_END
             | gen::AIRY_RS_TYPE_ERROR => RunStreamKind::Control,
-            gen::AIRY_RS_TYPE_PLAN => RunStreamKind::Cognition,
+            // C-15：plan/step/plan_unavailable 是认知面（计划与子目标），
+            // task_state 是控制面（任务状态机迁移）
+            gen::AIRY_RS_TYPE_PLAN
+            | gen::AIRY_RS_TYPE_STEP
+            | gen::AIRY_RS_TYPE_PLAN_UNAVAILABLE => RunStreamKind::Cognition,
+            gen::AIRY_RS_TYPE_TASK_STATE => RunStreamKind::Control,
             gen::AIRY_RS_TYPE_TOOL_START
             | gen::AIRY_RS_TYPE_TOOL_END
             | gen::AIRY_RS_TYPE_TOOL_DELTA => RunStreamKind::Execution,
@@ -116,6 +126,34 @@ pub fn decode_sse_frame(line: &str) -> Option<RunStreamEnvelope> {
 pub async fn run_stream_events<F>(
     client: &Client,
     params: Value,
+    on_event: F,
+) -> Result<(), AgentOSError>
+where
+    F: FnMut(RunStreamEnvelope),
+{
+    run_stream_events_with_method(client, METHOD_AGENT_RUN_STREAM, params, on_event).await
+}
+
+/// 订阅 task.submit_stream SSE 事件流（C-15 统一任务编排入口）。
+///
+/// 与 agent.run_stream 同一端点与信封；差别只在公开方法名——gateway 将其
+/// 映射为 daemon 的 task_submit_stream（模式裁决 + GCCP 门禁 + 计划执行）。
+pub async fn run_task_stream_events<F>(
+    client: &Client,
+    params: Value,
+    on_event: F,
+) -> Result<(), AgentOSError>
+where
+    F: FnMut(RunStreamEnvelope),
+{
+    run_stream_events_with_method(client, METHOD_TASK_SUBMIT_STREAM, params, on_event).await
+}
+
+/// 按公开方法名订阅流式事件（method 由 gateway 白名单校验）。
+pub async fn run_stream_events_with_method<F>(
+    client: &Client,
+    method: &str,
+    params: Value,
     mut on_event: F,
 ) -> Result<(), AgentOSError>
 where
@@ -124,7 +162,7 @@ where
     let body = serde_json::json!({
         "jsonrpc": "2.0",
         "id": 1,
-        "method": "agent.run_stream",
+        "method": method,
         "params": params,
     });
     let resp = client.post_stream("/api/v1/agent/run/stream", &body).await?;
@@ -190,6 +228,16 @@ mod tests {
         assert_eq!(gen::AIRY_RS_TYPE_TOOL_DELTA, "tool_delta");
         assert_eq!(gen::AIRY_RS_TYPE_TOKEN_DELTA, "token_delta");
         assert_eq!(gen::AIRY_RS_TYPE_MESSAGE, "message");
+        /* C-15：统一任务编排事件（plan/step/task_state/plan_unavailable） */
+        assert_eq!(gen::AIRY_RS_TYPE_STEP, "step");
+        assert_eq!(gen::AIRY_RS_TYPE_TASK_STATE, "task_state");
+        assert_eq!(gen::AIRY_RS_TYPE_PLAN_UNAVAILABLE, "plan_unavailable");
+    }
+
+    #[test]
+    fn test_method_names() {
+        assert_eq!(METHOD_AGENT_RUN_STREAM, "agent.run_stream");
+        assert_eq!(METHOD_TASK_SUBMIT_STREAM, "task.submit_stream");
     }
 
     /* ---- 解码路径 ---- */
@@ -224,6 +272,19 @@ mod tests {
 
         let line = r#"data: {"v":1,"type":"message","id":5,"ts":6,"epoch":0,"data":{"role":"assistant","content":"ok"}}"#;
         assert_eq!(decode_sse_frame(line).unwrap().kind(), RunStreamKind::Outcome);
+    }
+
+    #[test]
+    fn test_decode_task_events() {
+        /* C-15：step 属认知面；task_state 属控制面；plan_unavailable 认知面 */
+        let line = r#"data: {"v":1,"type":"step","id":4,"ts":5,"epoch":0,"data":{"step_index":1,"step_count":3,"step_status":"planned","step":"检查环境"}}"#;
+        assert_eq!(decode_sse_frame(line).unwrap().kind(), RunStreamKind::Cognition);
+
+        let line = r#"data: {"v":1,"type":"task_state","id":6,"ts":8,"epoch":0,"data":{"task_id":"task-1","state":"executing"}}"#;
+        assert_eq!(decode_sse_frame(line).unwrap().kind(), RunStreamKind::Control);
+
+        let line = r#"data: {"v":1,"type":"plan_unavailable","id":7,"ts":9,"epoch":0,"data":{"task_id":"task-1","reason":"plan_missing"}}"#;
+        assert_eq!(decode_sse_frame(line).unwrap().kind(), RunStreamKind::Cognition);
     }
 
     #[test]
