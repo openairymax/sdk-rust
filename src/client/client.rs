@@ -12,7 +12,7 @@ use reqwest::{Client as ReqwestClient, RequestBuilder, StatusCode};
 use serde_json::Value;
 use std::time::Duration;
 
-use crate::error::{AgentOSError, http_status_to_code};
+use crate::error::{AgentOSError, http_status_to_code, CODE_UNAVAILABLE};
 use crate::types::{APIResponse, HealthStatus, Metrics, RequestOptions, RequestOption};
 
 /// APIClient 定义所有 Manager 共同依赖的 HTTP 通信接口
@@ -326,6 +326,12 @@ impl Client {
         if !resp.status().is_success() {
             let status = resp.status();
             let err_body = resp.text().await.unwrap_or_default();
+            // 503 是网关对「下游服务正在重启」的显式应答：回合没有失败，
+            // 只是暂时不可达。用独立错误码交给上层进入暂停态，而不是
+            // 和真正的 5xx 失败混在一起。
+            if status.as_u16() == 503 {
+                return Err(AgentOSError::with_code(CODE_UNAVAILABLE, &err_body));
+            }
             return Err(AgentOSError::with_code(
                 http_status_to_code(status.as_u16()),
                 &err_body,

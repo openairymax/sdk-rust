@@ -47,6 +47,8 @@ pub const CODE_VALIDATION_ERROR: &str = "0x0012";
 pub const CODE_NOT_SUPPORTED: &str = "0x0013";
 pub const CODE_INTERNAL: &str = "0x0014";
 pub const CODE_BUSY: &str = "0x0015";
+/// 服务正在重启/暂不可达，稍后重试即可（区别于真正的失败）
+pub const CODE_UNAVAILABLE: &str = "0x0016";
 
 /// 核心循环错误码 (0x1xxx)
 pub const CODE_LOOP_CREATE_FAILED: &str = "0x1001";
@@ -320,6 +322,14 @@ impl AgentOSError {
                 | AgentOSError::Task(_)
                 | AgentOSError::Skill(_)
         )
+    }
+
+    /// 判断服务是否只是暂时不可达（重启窗口）
+    ///
+    /// 这类错误不代表回合失败：客户端应保持暂停态并在
+    /// retry_after_ms 之后重试，而不是把任务标成 failed。
+    pub fn is_unavailable(&self) -> bool {
+        self.code() == CODE_UNAVAILABLE
     }
 }
 
