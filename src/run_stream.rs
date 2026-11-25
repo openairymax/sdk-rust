@@ -87,6 +87,10 @@ impl RunStreamEnvelope {
             gen::AIRY_RS_TYPE_PLAN
             | gen::AIRY_RS_TYPE_STEP
             | gen::AIRY_RS_TYPE_PLAN_UNAVAILABLE => RunStreamKind::Cognition,
+            // N-8：子任务委派是派发动作（spawn 与收尾），不是模型的思考
+            // 中间态；与 TUI 的动作行同一归域，客户端不各说各话
+            gen::AIRY_RS_TYPE_SUBAGENT_START
+            | gen::AIRY_RS_TYPE_SUBAGENT_END => RunStreamKind::Execution,
             gen::AIRY_RS_TYPE_TASK_STATE => RunStreamKind::Control,
             gen::AIRY_RS_TYPE_TOOL_START
             | gen::AIRY_RS_TYPE_TOOL_END
@@ -232,6 +236,9 @@ mod tests {
         assert_eq!(gen::AIRY_RS_TYPE_STEP, "step");
         assert_eq!(gen::AIRY_RS_TYPE_TASK_STATE, "task_state");
         assert_eq!(gen::AIRY_RS_TYPE_PLAN_UNAVAILABLE, "plan_unavailable");
+        /* N-8：子任务委派事件（subagent_start/subagent_end） */
+        assert_eq!(gen::AIRY_RS_TYPE_SUBAGENT_START, "subagent_start");
+        assert_eq!(gen::AIRY_RS_TYPE_SUBAGENT_END, "subagent_end");
     }
 
     #[test]
@@ -285,6 +292,22 @@ mod tests {
 
         let line = r#"data: {"v":1,"type":"plan_unavailable","id":7,"ts":9,"epoch":0,"data":{"task_id":"task-1","reason":"plan_missing"}}"#;
         assert_eq!(decode_sse_frame(line).unwrap().kind(), RunStreamKind::Cognition);
+    }
+
+    #[test]
+    fn test_decode_subagent_events() {
+        /* N-8：起止帧携带 sub_id/depth，子帧与父帧共用一条序号 */
+        let line = r#"data: {"v":1,"type":"subagent_start","id":10,"ts":11,"epoch":0,"data":{"sub_id":"sub_1","goal":"核对依赖","depth":1,"budget":4096}}"#;
+        let ev = decode_sse_frame(line).expect("decode subagent_start");
+        assert_eq!(ev.kind(), RunStreamKind::Execution);
+        assert_eq!(ev.data_str(gen::AIRY_RS_K_SUB_ID), Some("sub_1"));
+        assert_eq!(ev.data_i64(gen::AIRY_RS_K_SUB_DEPTH), Some(1));
+        assert_eq!(ev.data_i64(gen::AIRY_RS_K_SUB_BUDGET), Some(4096));
+
+        let line = r#"data: {"v":1,"type":"subagent_end","id":12,"ts":13,"epoch":0,"data":{"sub_id":"sub_1","status":"done","tokens":128}}"#;
+        let ev = decode_sse_frame(line).expect("decode subagent_end");
+        assert_eq!(ev.kind(), RunStreamKind::Execution);
+        assert_eq!(ev.data_i64(gen::AIRY_RS_K_SUB_TOKENS), Some(128));
     }
 
     #[test]
