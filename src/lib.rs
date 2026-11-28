@@ -65,6 +65,7 @@ pub use syscall::{
     SyscallBinding, HttpSyscallBinding,
     SyscallNamespace, SyscallRequest, SyscallResponse,
     TaskSyscall, MemorySyscall, SessionSyscall, SkillSyscall, AgentSyscall,
+    SvcCall,
 };
 
 // 类型定义
